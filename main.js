@@ -3,31 +3,41 @@ import { Ticket } from "./classe/ticket.js";
 
 // let parking = []
 
-const kangoo = new Vehicule("Renault", "Kangoo", "240000", "2003");
+// const kangoo = new Vehicule("Renault", "Kangoo", "240000", "2003");
 
-const Twingo = new Vehicule("Renault", "Twingo", "240000", "2003");
-console.log(kangoo);
+// const twingo = new Vehicule("Renault", "Twingo", "240000", "2003");
 
 let immatriculation = document.querySelector(".immatriculation");
 let create = document.querySelector(".create");
 let pay = document.querySelector(".pay");
 let info = document.querySelector(".info");
 
-info.innerHTML = "Bonjour !"
+info.innerHTML = "Bienvenue !"
 
 create.addEventListener("click", () => {
 	let monTicket = new Ticket(immatriculation.value, new Date());
 	let parking = JSON.parse(localStorage.getItem("parkingJson")) || [];
-	parking.push(monTicket);
-	console.log(parking);
-	document.querySelector(".immatriculation").value = "";
-	info.innerHTML = `Veuillez prendre votre ticket pour le véhicule ${monTicket.immatriculation}`;
-	info.classList.add("good");
-	reset("good");
 
-	let parkingJson = JSON.stringify(parking);
-	localStorage.setItem("parkingJson", parkingJson);
+	let vehiculeExiste = parking.find(
+		(v) => v.immatriculation === monTicket.immatriculation
+	);
+
+	if (vehiculeExiste) {
+		info.innerHTML = "Votre véhicule est déjà dans le parking";
+		info.classList.add("bad");
+		reset("bad");
+	} else {
+		parking.push(monTicket);
+		document.querySelector(".immatriculation").value = "";
+		info.innerHTML = `Veuillez prendre votre ticket pour le véhicule ${monTicket.immatriculation}`;
+		info.classList.add("good");
+		reset("good");
+
+		let parkingJson = JSON.stringify(parking);
+		localStorage.setItem("parkingJson", parkingJson);
+	}
 });
+
 
 pay.addEventListener("click", () => {
 	let monImmatriculation = immatriculation.value;
@@ -45,6 +55,7 @@ pay.addEventListener("click", () => {
 
 	if (vehiculeTrouve) {
 		let dateActuelle = new Date();
+		vehiculeTrouve.date = new Date(vehiculeTrouve.date);
 		let duree = (dateActuelle - vehiculeTrouve.date) / 1000 / 60;
 		console.log("Durée en minutes : " + duree);
 
@@ -79,6 +90,7 @@ const reset = (classe) => {
 	setTimeout(() => {
 		info.innerHTML = "";
 		info.classList.remove(classe);
+		document.querySelector(".immatriculation").value = "";
 	}, 5000);
 };
 
