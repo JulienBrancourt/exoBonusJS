@@ -1,40 +1,39 @@
-import { Vehicule } from "./classe/vehicule.js";
+
 import { Ticket } from "./classe/ticket.js";
 
-// let parking = []
-
-// const kangoo = new Vehicule("Renault", "Kangoo", "240000", "2003");
-
-// const twingo = new Vehicule("Renault", "Twingo", "240000", "2003");
+let parking = JSON.parse(localStorage.getItem("parkingJson")) || [];
 
 let immatriculation = document.querySelector(".immatriculation");
 let create = document.querySelector(".create");
 let pay = document.querySelector(".pay");
 let info = document.querySelector(".info");
 
-info.innerHTML = "Bienvenue !"
+info.innerHTML = "Bienvenue !";
 
 create.addEventListener("click", () => {
 	let monTicket = new Ticket(immatriculation.value, new Date());
-	let parking = JSON.parse(localStorage.getItem("parkingJson")) || [];
+	// parking = JSON.parse(localStorage.getItem("parkingJson")) || [];
 
-	let vehiculeExiste = parking.find(
+	let vehiculeExiste = parking.findLast(
 		(v) => v.immatriculation === monTicket.immatriculation
 	);
+	console.log("parking" +parking);
+	
+console.log(typeof parking);
 
-	if (vehiculeExiste) {
-		info.innerHTML = "Votre véhicule est déjà dans le parking";
-		info.classList.add("bad");
-		reset("bad");
-	} else {
+	if (!vehiculeExiste || vehiculeExiste.dateSortie !== undefined) {
 		parking.push(monTicket);
-		document.querySelector(".immatriculation").value = "";
+		document.querySelector(".immatriculation").value = ""; 
 		info.innerHTML = `Veuillez prendre votre ticket pour le véhicule ${monTicket.immatriculation}`;
 		info.classList.add("good");
 		reset("good");
 
 		let parkingJson = JSON.stringify(parking);
 		localStorage.setItem("parkingJson", parkingJson);
+	} else {
+		info.innerHTML = "Votre véhicule est déjà dans le parking";
+		info.classList.add("bad");
+		reset("bad");
 	}
 });
 
@@ -46,7 +45,7 @@ pay.addEventListener("click", () => {
 	let parkingJson = localStorage.getItem("parkingJson")
 	let parkingParse = JSON.parse(parkingJson) || [];
 
-	let vehiculeTrouve = parkingParse.find(
+	let vehiculeTrouve = parkingParse.findLast(
 		(v) => v.immatriculation === monImmatriculation
 	);
     let indexVehicule = parkingParse.findIndex(
@@ -54,27 +53,30 @@ pay.addEventListener("click", () => {
 		);
 
 	if (vehiculeTrouve) {
-		let dateActuelle = new Date();
-		vehiculeTrouve.date = new Date(vehiculeTrouve.date);
-		let duree = (dateActuelle - vehiculeTrouve.date) / 1000 / 60;
-		console.log("Durée en minutes : " + duree);
-
-		let prix = tarif(duree).toFixed(2);
-		info.innerHTML = `Le prix à payer pour le véhicule ${vehiculeTrouve.immatriculation} est de ${prix} €`;
-		info.classList.add("toPay");
-        reset("toPay");
-		parkingParse.splice(indexVehicule, 1)
-		localStorage.setItem("parkingJson", JSON.stringify(parkingParse))
+		if (vehiculeTrouve.dateSortie == null) {
+			
+			let dateActuelle = new Date();
+			vehiculeTrouve.date = new Date(vehiculeTrouve.date);
+			let duree = (dateActuelle - vehiculeTrouve.date) / 1000 / 60;
+	
+			let prix = tarif(duree).toFixed(2);
+			info.innerHTML = `Le prix à payer pour le véhicule ${vehiculeTrouve.immatriculation} est de ${prix} €`;
+			info.classList.add("toPay");
+			reset("toPay");
+			// parkingParse.splice(indexVehicule, 1)
+			parkingParse[indexVehicule].dateSortie = dateActuelle
+			console.log(parkingParse);
+			
+			localStorage.setItem("parkingJson", JSON.stringify(parkingParse[indexVehicule]))
+		}
 	} else {
-		info.innerHTML = `Le véhicule ${monImmatriculation} n'existe pas !`;
+		info.innerHTML = `Le véhicule ${monImmatriculation} n'eest pas dans le parking !`;
 		info.classList.add("bad");
 		reset("bad");
 	}
 });
 
 const tarif = (duree) => {
-	console.log("Durée dans tarif : " + duree);
-
 	if (duree <= 15) {
 		return 0.8;
 	} else if (duree <= 30) {

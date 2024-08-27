@@ -1,6 +1,7 @@
 export class Ticket {
-    constructor(immatriculation, date) {
-        this.immatriculation = immatriculation,
-        this.date = date
-    }
+	constructor(immatriculation, date, dateSortie = null) {
+		this.immatriculation = immatriculation;
+		this.date = date;
+		this.dateSortie = dateSortie;
+	}
 }
